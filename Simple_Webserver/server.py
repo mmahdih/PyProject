@@ -4,13 +4,13 @@ import hashlib
 # import uuid
 
 # my libraries
-from handle_request import *
+# from handle_request import *
 
 # initial variables
-get_routes = {
-    "/"                 : handle_get(),
-    "/login"            : "login"
-}
+# get_routes = {
+#     "/"                 : handle_get(),
+#     "/login"            : "login"
+# }
 
 
 
