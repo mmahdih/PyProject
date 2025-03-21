@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NexChat</title>
+    <link href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-image: url("https://images.pexels.com/photos/132037/pexels-photo-132037.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940");
+            background-size: cover;
+        }
+        .container {
+            background-color: rgba(255, 255, 255, 0.95);
+        }
+    </style>
+</head>
+<body>
+    <div class="container mx-auto p-4 md:p-6 lg:p-12 bg-white rounded-lg shadow-lg mt-8">
+        <div class="flex items-center justify-center">
+            <i class="fas fa-comment-dots text-6xl mr-4"></i>
+            <h1 class="text-5xl font-bold">NexChat</h1>
+        </div>
+        <div class="flex flex-col md:flex-row items-center justify-center mt-8">
+            <div class="w-full md:w-1/2 p-4">
+                <p class="text-2xl text-gray-600">Want to stay in touch with friends and family?</p>
+                <p class="text-2xl text-gray-600">Or maybe you just want to meet new people?</p>
+                <p class="text-2xl text-gray-600">NexChat is the perfect place for you!</p>
+            </div>
+            <div class="w-full md:w-1/2 p-4">
+                <img src="https://images.pexels.com/photos/325185/pexels-photo-325185.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940" alt="NexChat Screenshot" class="rounded-lg shadow-lg">
+            </div>
+        </div>
+        <div class="flex items-center justify-center mt-8">
+            <a href="/login" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md mr-4">
+                Login
+            </a>
+            <a href="/signup" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md">
+                Sign up
+            </a>
+        </div>
+    </div>
+</body>
+</html>
+
