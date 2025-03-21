@@ -23,7 +23,7 @@ capture_button.pack()
 def record_video():
     # Create a VideoWriter object
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
-    out = cv2.VideoWriter('../html_pages/output.avi', fourcc, 20.0, (640, 480))
+    out = cv2.VideoWriter('../Simple_Webserver/html_pages/output.avi', fourcc, 20.0, (640, 480))
     while True:
         ret, frame = vc.read()
         out.write(frame)
