@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/html">
+  <head>
+    <meta charset="UTF-8" />
+    <script defer src="javascript/script.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NexChat</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-100 h-screen flex flex-col items-center justify-center">
+    <!-- Logo -->
+    <div class="flex items-center space-x-3 mb-6">
+      <div class="bg-gradient-to-r from-indigo-500 to-purple-500 p-3 rounded-full shadow-lg">
+        <span class="text-white text-3xl font-bold"> N </span>
+      </div>
+      <h1 class="text-4xl font-bold text-gray-800">NexChat</h1>
+    </div>
+
+
+    <div class="flex w-full max-w-4xl h-[600px] bg-white rounded-lg shadow-lg overflow-hidden">
+      <!-- Friends List -->
+      <div class="w-1/3 bg-gray-200 p-4 overflow-y-auto">
+        <h2 class="text-xl font-semibold mb-4">Friends</h2>
+        <ul id="friendsList">
+        <!--  <li class="friend p-3 bg-gray-300 rounded-lg mb-2 cursor-pointer hover:bg-white" data-name="Friend 1">Friend 1</li> -->
+        </ul>
+      </div>
+
+      <!-- Chat Messages -->
+      <div class="w-2/3 flex flex-col p-4">
+        <h2 class="text-xl font-semibold mb-4">Chat with</h2>
+        <h3 id="chatWith" class="text-2xl font-semibold mb-4"></h3>
+        <div class="messages-container flex-1 overflow-y-auto space-y-2"></div>
+
+        <!-- Message Input -->
+        <div class="mt-4 flex items-center space-x-2">
+        <input type="file" id="add-file" class="hidden" />
+        <label for="add-file" class="ml-2 bg-indigo-500 text-white px-4 py-2 rounded-lg hover:bg-indigo-600">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+          </svg>
+        </label>
+          <input id="messageInput" type="text" class="flex-1 p-2 border border-gray-300 rounded-lg focus:outline-none" placeholder="Type a message..." />
+          <button id="sendMessage" class="ml-2 bg-indigo-500 text-white px-4 py-2 rounded-lg hover:bg-indigo-600">Send</button>
+        </div>
+      </div>
+    </div>
+    <button id="askForUsers" class="mt-4 bg-indigo-500 text-white px-4 py-2 rounded-lg hover:bg-indigo-600">Ask for Users</button>
+    <button id="get_rooms" class="mt-4 bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-indigo-600">Get Rooms</button>
+
+  </body>
+</html>

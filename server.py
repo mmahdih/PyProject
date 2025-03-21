@@ -1,7 +1,17 @@
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import psycopg2
 import hashlib
-import uuid
+# import uuid
+
+# my libraries
+from handle_request import *
+
+# initial variables
+get_routes = {
+    "/"                 : handle_get(),
+    "/login"            : "login"
+}
+
 
 
 
@@ -20,7 +30,6 @@ except psycopg2.OperationalError as e:
 
 cur = conn.cursor()
 
-
 cur.execute("CREATE TABLE IF NOT EXISTS users (user_id UUID PRIMARY KEY DEFAULT gen_random_uuid(), username varchar, password varchar);")
 conn.commit()
 
@@ -31,28 +40,32 @@ conn.commit()
 # rows = cur.fetchall()
 # print(rows)
 
-
-
 # # INSERT A SAMPLE USER
 # cur.execute("INSERT INTO users (username, password) VALUES ('coddy', 'password');")
 # conn.commit()
+
+
+def open_file(path):
+    with open(path) as f:
+        page = f.read()
+    return page
+
+
 
 
 
 class RequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path == "/":
-            with open('html_pages/index.html') as f:
-                page = f.read()
+            page = open_file('html_pages/index.html')
 
-            self.send_response(200)
+            self.send_response(201)
             self.send_header("Content-Type", "text/html")
             self.end_headers()
             self.wfile.write(page.encode('utf-8'))
 
         elif self.path == "/login":
-            with open('html_pages/login.html') as f:
-                page = f.read()
+            page = open_file('html_pages/login.html')
 
             self.send_response(200)
             self.send_header("Content-Type", "text/html")
@@ -60,8 +73,7 @@ class RequestHandler(BaseHTTPRequestHandler):
             self.wfile.write(page.encode('utf-8'))
 
         elif self.path == "/signup":
-            with open('html_pages/register.html') as f:
-                page = f.read()
+            page = open_file('html_pages/register.html')
 
             self.send_response(200)
             self.send_header("Content-Type", "text/html")
@@ -76,8 +88,8 @@ class RequestHandler(BaseHTTPRequestHandler):
         path = self.path
 
         if path == "/api/auth/register":
-            with open('html_pages/response_page.html') as f:
-                page = f.read()
+            page = open_file('html_pages/response_page.html')
+
             content_length = int(self.headers['Content-Length'])
             body = self.rfile.read(content_length)
             print(body)
@@ -111,8 +123,7 @@ class RequestHandler(BaseHTTPRequestHandler):
             self.wfile.write(page.replace("$Title$", "Success").replace("$END$", f"Welcome {username}").encode('utf-8'))
 
         elif path == "/api/auth/login":
-            with open('html_pages/response_page.html') as f:
-                page = f.read()
+            page = open_file('html_pages/response_page.html')
 
             content_length = int(self.headers['Content-Length'])
             body = self.rfile.read(content_length)
