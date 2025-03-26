@@ -185,17 +185,34 @@ def disk_usage(drive_letter):
 
     return total, used, free
 
+def make_buttons(frame, name):
+    button = CTkButton(frame, text=name, font=ctk.CTkFont(family=("Helvetika"), size=20, weight="bold"), fg_color="#434c5e", hover_color="#4c566a", cursor="hand2", command=lambda: open_file("C:/" + name))
+    button.pack(pady=10)
+
+
+
+def clear_all_inside_frame(frame):
+    # Iterate through every widget inside the frame
+    for widget in frame.winfo_children():
+        widget.destroy()  # deleting widget
+
+
 def open_file(file_path):
-    # os.startfile(file_path)
-    dir_frame = CTkFrame(this_pc.app, width=280)
+
+    # global current_dir
+    # current_dir += file_path
+
+    clear_all_inside_frame(dir_frame)
 
     for file in load_files(file_path):
-        print(file)
-        button = CTkButton(dir_frame, text=file, command=lambda file=file: open_file(f"{file_path}:\\{file}"))
-        button.pack(pady=10)
+        if file.__contains__('..'):
+            continue
+        elif file.__contains__('.'):
+            continue
+        else:
+            make_buttons(dir_frame, file)
 
-    print(f"Opening file: {file_path}")
-    print(load_files(file_path))
+    # print(f"Opening file: {file_path}")
 
 def load_files(file_path):
     files = os.listdir(f"{file_path}\\")
@@ -205,10 +222,13 @@ drives_sizes = {}
 
 # make a frame for every drive in this pc
 for drive in drives:
-    print(f"Drive: {drive}")
-
     # Create the parent frame for the drive
     make_drive_frames(drive)
+
+dir_frame = ctk.CTkScrollableFrame(this_pc.app, label_text="Files", height=410)
+dir_frame.grid(row=4, column=0, columnspan=2, sticky="nsew", padx=10, pady=10)
+dir_frame.grid_columnconfigure(0, weight=0)
+dir_frame.grid_columnconfigure(0, weight=1)
 
 
 
