@@ -4,6 +4,7 @@ from ctypes import windll
 from datetime import datetime
 from shutil import disk_usage
 from tkinter import *
+import tkinter as tk
 from tkinter import ttk
 from typing import Union, Callable
 
@@ -13,26 +14,23 @@ import psutil
 from PIL import Image
 from customtkinter import *
 import numpy as np
+import win32api
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-# ctk.deactivate_automatic_dpi_awareness()
-
-# custom scaling
-# ctk.set_window_scaling(0.8)
-# ctk.set_widget_scaling(0.8)
+# # List all logical drives
+# partitions = psutil.disk_partitions()
+#
+#
+# # Filter out partitions that have no media (skip 'no media' drives)
+# for partition in partitions:
+#     # Check if the partition is mounted and has a valid device
+#     if partition.fstype and partition.device != '::':
+#         print(f"Device: {partition.device}, Mountpoint: {partition.mountpoint}, File system type: {partition.fstype}")
+#         try:
+#             drives_info = win32api.GetVolumeInformation(partition.mountpoint)
+#             print(drives_info[0])
+#         except Exception as e:
+#             print(f"Error getting volume information for {partition.mountpoint}: {e}")
 
 
 selected_items = []
@@ -79,8 +77,8 @@ class Make_Button(ctk.CTkButton):
 	# def bind(self, button, command, event=None):
 	# 	super().bind( f"<{button}>", lambda: command(event) )
 
-
-toolbar = ctk.CTkFrame(this_pc.app, fg_color="lightblue", border_width=1, corner_radius=0, height=40)
+#
+toolbar = ctk.CTkFrame(this_pc.app, fg_color="lightblue", border_width=1, corner_radius=0, height=30)
 toolbar.pack(side=TOP, fill=X, ipady=10, ipadx=10)
 
 back_btn = Make_Button(toolbar, "", 20, 20, "#eceff4", "#4681f4", "hand2",  lambda: print("back"), "back.png", padx=(10, 1))
@@ -119,67 +117,94 @@ new_folder_btn.configure(corner_radius=5)
 
 
 
-# selection pane
-selection_pane = ctk.CTkFrame(this_pc.app, fg_color="#E8E8E8", border_width=1, corner_radius=0, height=40)
-selection_pane.pack(side=BOTTOM, fill=X)
+# # selection pane
+# selection_pane = ctk.CTkFrame(this_pc.app, fg_color="#E8E8E8", border_width=1, corner_radius=0, height=30)
+# selection_pane.pack(side=BOTTOM, fill=X)
 
+
+# ctk.CTkFrame(this_pc.app, fg_color="#E8E8E8", border_width=1, corner_radius=0, width=int(this_pc.width * 0.20))
 # preview pane
-navigation_pane = ctk.CTkFrame(this_pc.app, fg_color="#E8E8E8", border_width=1, corner_radius=0, width=int(this_pc.width * 0.20))
-navigation_pane.pack(side=LEFT, fill=Y)
+
+main_panel = tk.PanedWindow(this_pc.app, bg="white")
+main_panel.pack(side=LEFT, fill=BOTH, expand=1)
 
 
-
-# folders view part
-display = ctk.CTkFrame(this_pc.app, fg_color="#E8E8E8", border_width=1, corner_radius=0, width=int(this_pc.width * 0.60))
-display.pack(side=LEFT, fill=BOTH, expand=True)
+label0 = Label(main_panel, text="Main Panel")
+main_panel.add(label0)
 
 
-# make a table for folders
-folder_tree = ttk.Treeview(this_pc.app)
-folder_tree["columns"] = ("Name", "File Type", "Size", "Date Created", "Date Modified")
+navigation_pane = tk.PanedWindow(main_panel, bg="red", width=100)
+main_panel.add(navigation_pane)
 
-folder_tree.heading("#0", text="Path")
-folder_tree.heading("Name", text="Name")
-folder_tree.heading("File Type", text="File Type")
-folder_tree.heading("Size", text="Size")
-folder_tree.heading("Date Created", text="Date Created")
-folder_tree.heading("Date Modified", text="Date Modified")
-
-folder_tree.column("#0", width=150)
-folder_tree.column("Name", anchor="center", width=100)
-folder_tree.column("File Type", anchor="center", width=100)
-folder_tree.column("Size", anchor="center", width=100)
-folder_tree.column("Date Created", anchor="center", width=150)
-folder_tree.column("Date Modified", anchor="center", width=150)
-
-folder_tree.insert("", "end", "C:\\", text="C:\\", values=("Folder", "-", "-", "-", "-"))
-folder_tree.insert("", "end", "D:\\", text="D:\\", values=("Folder", "-", "-", "-", "-"))
+label1 = Label(navigation_pane, text="Navigation Pane")
+navigation_pane.add(label1)
 
 
+preview_pane = tk.PanedWindow(main_panel,bg="blue")
+main_panel.add(preview_pane)
+
+label2 = Label(preview_pane, text="Preview Pane")
+preview_pane.add(label2)
 
 
-# preview pane
-preview_pane = ctk.CTkFrame(this_pc.app, fg_color="#E8E8E8", border_width=0, corner_radius=0, width=int(this_pc.width * 0.20))
-preview_pane.pack(side=RIGHT, fill=BOTH, expand=True)
+display_pane = tk.PanedWindow(main_panel,bg="brown", width=100)
+main_panel.add(display_pane)
 
-# preview pane toolbar img
-img1 = Image.open("images\\pexels-francesco-ungaro-2325447.jpg")
-# width, height = img1.size
-new_width = int(100 * (16 / 9))
-ttk_img1 = ctk.CTkImage(img1.resize((new_width, 100)), size=(new_width, 100))
-img_label = ctk.CTkLabel(preview_pane, text="", image=ttk_img1)
-img_label.pack(side=TOP, pady=(60,0))
+label3 = Label(display_pane, text="Display Pane")
+display_pane.add(label3)
 
-file_label = ctk.CTkLabel(preview_pane, text="Image 1.jpg", font=ctk.CTkFont(family=("Helvetika"), size=20, weight="normal"), fg_color="#E8E8E8", text_color="black")
-file_label.pack(side=TOP, fill=X, pady=(10, 0))
-
-date_created = ctk.CTkLabel(preview_pane, text=f"Date Created: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}" , font=ctk.CTkFont(family=("Helvetika"), size=12, weight="normal"), fg_color="#E8E8E8", text_color="black")
-date_created.pack(side=TOP, fill=X, pady=(10, 0))
-
-date_modified = ctk.CTkLabel(preview_pane, text=f"Date Created: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}", font=ctk.CTkFont(family=("Helvetika"), size=12, weight="normal"), fg_color="#E8E8E8", text_color="black")
-date_modified.pack(side=TOP, fill=X, pady=(10, 0))
-
-
+#
+# # folders view part
+# display = ctk.CTkFrame(this_pc.app, fg_color="#E8E8E8", border_width=1, corner_radius=0, width=int(this_pc.width * 0.60))
+# display.pack(side=LEFT, fill=BOTH, expand=True)
+#
+#
+# # make a table for folders
+# folder_tree = ttk.Treeview(display)
+# folder_tree["columns"] = ("Name", "File Type", "Size", "Date Created", "Date Modified")
+#
+# folder_tree.heading("#0", text="Path")
+# folder_tree.heading("Name", text="Name")
+# folder_tree.heading("File Type", text="File Type")
+# folder_tree.heading("Size", text="Size")
+# folder_tree.heading("Date Created", text="Date Created")
+# folder_tree.heading("Date Modified", text="Date Modified")
+#
+# folder_tree.column("#0", width=150)
+# folder_tree.column("Name", anchor="center", width=100)
+# folder_tree.column("File Type", anchor="center", width=100)
+# folder_tree.column("Size", anchor="center", width=100)
+# folder_tree.column("Date Created", anchor="center", width=150)
+# folder_tree.column("Date Modified", anchor="center", width=150)
+#
+# folder_tree.insert("", "end", "C:\\", text="C:\\", values=("Folder", "-", "-", "-", "-"))
+# folder_tree.insert("", "end", "D:\\", text="D:\\", values=("Folder", "-", "-", "-", "-"))
+#
+#
+#
+#
+# # preview pane
+# preview_pane = ctk.CTkFrame(this_pc.app, fg_color="#E8E8E8", border_width=0, corner_radius=0, width=int(this_pc.width * 0.20))
+# preview_pane.pack(side=RIGHT, fill=BOTH, expand=True)
+#
+# # preview pane toolbar img
+# img1 = Image.open("images\\pexels-francesco-ungaro-2325447.jpg")
+# # width, height = img1.size
+# new_width = int(100 * (16 / 9))
+# ttk_img1 = ctk.CTkImage(img1.resize((new_width, 100)), size=(new_width, 100))
+# img_label = ctk.CTkLabel(preview_pane, text="", image=ttk_img1)
+# img_label.pack(side=TOP, pady=(60,0))
+#
+# file_label = ctk.CTkLabel(preview_pane, text="Image 1.jpg", font=ctk.CTkFont(family=("Helvetika"), size=20, weight="normal"), fg_color="#E8E8E8", text_color="black")
+# file_label.pack(side=TOP, fill=X, pady=(10, 0))
+#
+# date_created = ctk.CTkLabel(preview_pane, text=f"Date Created: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}" , font=ctk.CTkFont(family=("Helvetika"), size=12, weight="normal"), fg_color="#E8E8E8", text_color="black")
+# date_created.pack(side=TOP, fill=X, pady=(10, 0))
+#
+# date_modified = ctk.CTkLabel(preview_pane, text=f"Date Created: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}", font=ctk.CTkFont(family=("Helvetika"), size=12, weight="normal"), fg_color="#E8E8E8", text_color="black")
+# date_modified.pack(side=TOP, fill=X, pady=(10, 0))
+#
+#
 
 
 
@@ -313,59 +338,57 @@ dir_history = DirectoryHistory()
 
 
 
-# # bind the F11 key to toggle fullscreen
-# this_pc.app.bind("<F11>", lambda event: this_pc.fullscreen_toggle())
-# if this_pc.app.state() != "normal":
-# 	this_pc.app.bind("<Escape>", lambda event: this_pc.fullscreen_toggle())
-# print("state: ", this_pc.app.state())
-#
-#
-# # this_pc.app.bind("<F1>", lambda event: bigger_screen())
-#
-# def open_foto(name):
-# 	this_pc.app.geometry("1500x600")
-# 	global image_frame
-# 	image_frame = ctk.CTkFrame(this_pc.app, width=700, height=394)
-# 	image_frame.grid(row=0, column=3, rowspan=10, sticky="nsew", pady=10, padx=10)
-#
-# 	image_dir = f"{dir_history.get_current_dir()}\\{name}"
-# 	print(image_dir)
-#
-# 	# my_image = Image.open("images\\hdd_white.PNG")
-# 	# my_image = my_image.resize([60, 60])  # Resize the image
-# 	#
-# 	# # Convert the image into a CTkImage object
-# 	# drive_img = ctk.CTkImage(png_img, size=(60, 60))
-# 	#
-# 	# # Create the label with the CTkImage object
-# 	# label = ctk.CTkLabel(drive_frame, image=drive_img, text="")
-# 	# label.grid(row=0, column=0, rowspan=3, sticky="nw", padx=5, pady=(10, 0))
-# 	#
-# 	# # Keep a reference to the image to prevent garbage collection
-# 	# label.image = drive_img
-#
-# 	my_image = Image.open(image_dir)
-# 	width, height = my_image.size
-# 	scale = min(700 / width, 394 / height)
-# 	new_width = int(width * scale)
-# 	new_height = int(height * scale)
-# 	# my_image = my_image.resize((new_width, new_height), Image.Resampling.LANCZOS)
-# 	# Resize the image to fit the frame while keeping the aspect ratio
-# 	# print(f"iamge width: {width}, hight: {height}")
-# 	# print(f"iamge width: {new_width}, hight: {new_height}")
-# 	# my_image = my_image.resize((new_width, new_height), Image.Resampling.LANCZOS)
-# 	the_image = ctk.CTkImage(my_image, size=(new_width, new_height))
-#
-# 	# Calculate the x and y offset to center the image
-# 	x_offset = (550 - new_width) // 2
-# 	y_offset = (550 - new_height) // 2
-#
-# 	# Create the label with the CTkImage object
-# 	label = ctk.CTkLabel(image_frame, image=the_image, text="")
-# 	label.place(relx=0.5, rely=0.5, anchor="center")
-# 	# Keep a reference to the image to prevent garbage collection
-# 	label.image = my_image
-#
+# bind the F11 key to toggle fullscreen
+this_pc.app.bind("<F11>", lambda event: this_pc.fullscreen_toggle())
+if this_pc.app.state() != "normal":
+	this_pc.app.bind("<Escape>", lambda event: this_pc.fullscreen_toggle())
+print("state: ", this_pc.app.state())
+
+
+def open_foto(name):
+	this_pc.app.geometry("1500x600")
+	global image_frame
+	image_frame = ctk.CTkFrame(this_pc.app, width=700, height=394)
+	image_frame.grid(row=0, column=3, rowspan=10, sticky="nsew", pady=10, padx=10)
+
+	image_dir = f"{dir_history.get_current_dir()}\\{name}"
+	print(image_dir)
+
+	# my_image = Image.open("images\\hdd_white.PNG")
+	# my_image = my_image.resize([60, 60])  # Resize the image
+	#
+	# # Convert the image into a CTkImage object
+	# drive_img = ctk.CTkImage(png_img, size=(60, 60))
+	#
+	# # Create the label with the CTkImage object
+	# label = ctk.CTkLabel(drive_frame, image=drive_img, text="")
+	# label.grid(row=0, column=0, rowspan=3, sticky="nw", padx=5, pady=(10, 0))
+	#
+	# # Keep a reference to the image to prevent garbage collection
+	# label.image = drive_img
+
+	my_image = Image.open(image_dir)
+	width, height = my_image.size
+	scale = min(700 / width, 394 / height)
+	new_width = int(width * scale)
+	new_height = int(height * scale)
+	# my_image = my_image.resize((new_width, new_height), Image.Resampling.LANCZOS)
+	# Resize the image to fit the frame while keeping the aspect ratio
+	# print(f"iamge width: {width}, hight: {height}")
+	# print(f"iamge width: {new_width}, hight: {new_height}")
+	# my_image = my_image.resize((new_width, new_height), Image.Resampling.LANCZOS)
+	the_image = ctk.CTkImage(my_image, size=(new_width, new_height))
+
+	# Calculate the x and y offset to center the image
+	x_offset = (550 - new_width) // 2
+	y_offset = (550 - new_height) // 2
+
+	# Create the label with the CTkImage object
+	label = ctk.CTkLabel(image_frame, image=the_image, text="")
+	label.place(relx=0.5, rely=0.5, anchor="center")
+	# Keep a reference to the image to prevent garbage collection
+	label.image = my_image
+
 #
 # def open_new_window(name):
 # 	image_dir = f"{dir_history.get_current_dir()}\\{name}"
@@ -419,8 +442,8 @@ def make_drive_frames(drive):
 	# drive_frame.pack(side=LEFT, pady=10, padx=10)
 
 	# drive sizes
-	total, used, free = disk_usage(drive)
-	drives_sizes[drive] = {"total": total, "used": used, "free": free}
+	total, used, free = disk_usage(drive[0])
+	drives_sizes[drive[0]] = {"total": total, "used": used, "free": free}
 
 	# add an icon for each drive
 	png_img = Image.open("images\\hdd_white.PNG")
@@ -438,19 +461,13 @@ def make_drive_frames(drive):
 
 	my_font = ctk.CTkFont(family=("Helvetika"), size=14, weight="bold")
 
-	# Drive label
-	name = ""
-	if (drive == "C"):
-		name = f"{drive}: Windows"
-	elif (drive == "D"):
-		name = f"{drive}: Personal Files"
 
-	drive_label = CTkLabel(drive_frame, text=name, font=my_font)
+	drive_label = CTkLabel(drive_frame, text=drive[1], font=my_font)
 	drive_label.grid(row=0, column=1, sticky="nw", pady=(3,0))
 
 	# Progress bar
 	drive_progress_bar = CTkProgressBar(drive_frame, corner_radius=0, border_width=1)
-	drive_progress_bar.set(drives_sizes[drive]["used"] / drives_sizes[drive]["total"])
+	drive_progress_bar.set(drives_sizes[drive[0]]["used"] / drives_sizes[drive[0]]["total"])
 	drive_progress_bar.grid(row=1, column=1, sticky="nw", padx=(0,5), pady=0)
 
 	# Drive usage label
@@ -461,8 +478,8 @@ def make_drive_frames(drive):
 	drive_frame.configure(cursor="hand2")
 	drive_frame.bind("<Button-1>", lambda d=drive: initial_dir(f"{drive}:"))
 	label.bind("<Button-1>", lambda d=drive: initial_dir(f"{drive}:"))
-	drive_label.bind("<Button-1>", lambda d=drive: initial_dir(f"{drive}:"))
-	drive_usage.bind("<Button-1>", lambda d=drive: initial_dir(f"{drive}:"))
+	# drive_label.bind("<Button-1>", lambda d=drive: initial_dir(f"{drive}:"))
+	drive_usage.bind("<Button-1>", lambda d=drive: print(f"{drive}:"))
 	drive_progress_bar.bind("<Button-1>", lambda d=drive: initial_dir(f"{drive}:"))
 
 	drive_frame.bind('<Enter>', lambda event: enter(drive_frame))
@@ -479,24 +496,42 @@ def make_drive_frames(drive):
 
 #
 # get the drives letter and return it
-def get_drives():
-	drives = []
-	bitmask = windll.kernel32.GetLogicalDrives()
-	for letter in string.ascii_uppercase:
-		if bitmask & 1:
-			drives.append(letter)
-		bitmask >>= 1
+# def get_drives():
+# 	drives = []
+# 	bitmask = windll.kernel32.GetLogicalDrives()
+# 	for letter in string.ascii_uppercase:
+# 		if bitmask & 1:
+# 			drives.append(letter)
+# 		bitmask >>= 1
+#
+# 	return drives
 
+def get_drives_info():
+	# List all logical drives
+	partitions = psutil.disk_partitions()
+	print (f"Partitions: {partitions}")
+	drives = []
+
+	# Filter out partitions that have no media (skip 'no media' drives)
+	for partition in partitions:
+		# Check if the partition is mounted and has a valid device
+		if partition.fstype and partition.device != '::':
+			try:
+				drives_info = win32api.GetVolumeInformation(partition.mountpoint)
+				drives.append([partition.mountpoint, drives_info[0]])
+			except Exception as e:
+				print(f"Error getting volume information for {partition.mountpoint}: {e}")
+	print(drives)
 	return drives
 
 
-drives = get_drives()
-print(f"Drives: {drives}")
+
+
 
 
 # get the disk usage of the hard drive
 def disk_usage(drive_letter):
-	hdd = psutil.disk_usage(f"{drive_letter}:")
+	hdd = psutil.disk_usage(drive_letter)
 
 	total = round(hdd.total / 1024 / 1024 / 1024, 2)
 	used = round(hdd.used / 1024 / 1024 / 1024, 2)
@@ -514,7 +549,7 @@ def make_buttons(frame, name, type):
 		button = ""
 		button = CTkButton(frame, text=name, font=ctk.CTkFont(family=("Helvetika"), size=20, weight="bold"),
 		                   fg_color="#434c5e", hover_color="#4c566a", cursor="hand2", command=lambda: open_foto(name))
-		button.bind("<Double-Button-1>", lambda event: open_new_window(name))
+		button.bind("<Double-Button-1>", lambda event: print(name))
 		button.pack(pady=10)
 	elif (type == "folder"):
 		button = ""
@@ -564,12 +599,14 @@ def load_files(file_path):
 
 drives_sizes = {}
 
+drives = get_drives_info()
 # make a frame for every drive in this pc
 for drive in drives:
+	print(drive)
 	# Create the parent frame for the drive
-	make_drive_frames(drive)
+	# make_drive_frames(drive)
 
-dir_frame = ctk.CTkScrollableFrame(this_pc.app, label_text="Files", height=380)
+# dir_frame = ctk.CTkScrollableFrame(this_pc.app, label_text="Files", height=380)
 # dir_frame.grid(row=4, column=0, columnspan=2, sticky="nsew", padx=10, pady=10)
 # dir_frame.grid_columnconfigure(0, weight=0)
 # dir_frame.grid_columnconfigure(0, weight=1)
