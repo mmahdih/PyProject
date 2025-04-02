@@ -92,9 +92,18 @@ forward_btn.configure(corner_radius=5)
 # forward_btn.bind("<Enter>", lambda event: forward_btn.configure(hover_color="#4c566a") and forward_btn.img("white\\forward.png", 20, 20))
 # forward_btn.bind("<Leave>", lambda event: forward_btn.img("forward.png", 20, 20))
 
+
+navigation_pane_btn = Make_Button(toolbar, "", 20, 20, "#eceff4", "#4681f4", "hand2",  lambda: print("preview pane"), "navigation_pane.png", padx=10)
+navigation_pane_btn.configure(corner_radius=5)
+
+
+preview_pane_toggle = TRUE
+
 # preview pane toolbar button
 preview_pane_btn = Make_Button(toolbar, "", 20, 20, "#eceff4", "#4681f4", "hand2",  lambda: print("preview pane"), "preview_pane.png", padx=10)
 preview_pane_btn.configure(corner_radius=5)
+
+
 
 copy_btn = Make_Button(toolbar, "", 20, 20, "#eceff4", "#4681f4", "hand2",  lambda: print("copy"), "copy.png", padx=10)
 copy_btn.configure(corner_radius=5)
@@ -118,40 +127,84 @@ new_folder_btn.configure(corner_radius=5)
 
 
 # # selection pane
-# selection_pane = ctk.CTkFrame(this_pc.app, fg_color="#E8E8E8", border_width=1, corner_radius=0, height=30)
-# selection_pane.pack(side=BOTTOM, fill=X)
+selection_pane = ctk.CTkFrame(this_pc.app, fg_color="#E8E8E8", border_width=1, corner_radius=0, height=30)
+selection_pane.pack(side=BOTTOM, fill=X)
 
 
 # ctk.CTkFrame(this_pc.app, fg_color="#E8E8E8", border_width=1, corner_radius=0, width=int(this_pc.width * 0.20))
 # preview pane
 
-main_panel = tk.PanedWindow(this_pc.app, bg="white")
+main_panel = tk.PanedWindow(this_pc.app, bg="white", orient=HORIZONTAL)
 main_panel.pack(side=LEFT, fill=BOTH, expand=1)
 
-
-label0 = Label(main_panel, text="Main Panel")
-main_panel.add(label0)
-
-
-navigation_pane = tk.PanedWindow(main_panel, bg="red", width=100)
+navigation_pane = tk.PanedWindow(main_panel, width=250)
 main_panel.add(navigation_pane)
 
-label1 = Label(navigation_pane, text="Navigation Pane")
-navigation_pane.add(label1)
+# label1 = Label(navigation_pane, text="Navigation Pane")
+# navigation_pane.add(label1)
 
 
-preview_pane = tk.PanedWindow(main_panel,bg="blue")
+folder_img = tk.PhotoImage(file="images\\folder_color 20.png")
+file_img = tk.PhotoImage(file="images\\file_color_20.png")
+
+
+
+
+middle_pane = tk.PanedWindow(main_panel, bg="white", width=int(this_pc.width - 500))
+main_panel.add(middle_pane)
+
+tabletree = ttk.Treeview(middle_pane)
+
+tabletree.tag_configure("larg", font=("arial", 16))
+
+tabletree["columns"] = ("Name", "File Type", "Size", "Date Created", "Date Modified")
+
+tabletree.column("#0", width=50)
+tabletree.column("Name", width=200)
+tabletree.column("File Type", width=100, anchor="center")
+tabletree.column("Size", width=100 , anchor="center")
+tabletree.column("Date Created", width=100 , anchor="center")
+tabletree.column("Date Modified", width=100 , anchor="center")
+
+tabletree.heading("#0", text="", )
+tabletree.heading("Name", text="Name", anchor="w")
+tabletree.heading("File Type", text="File Type")
+tabletree.heading("Size", text="Size")
+tabletree.heading("Date Created", text="Date Created")
+tabletree.heading("Date Modified", text="Date Modified")
+
+# tabletree.insert("",index = tk.END , values=("Tutorials", "Folder", "-", "-", "-"), image=folder_img)
+# tabletree.insert("",index = tk.END , values=("Tutorials", "Folder", "-", "-", "-"), image=folder_img)
+# tabletree.insert("",index = tk.END , values=("Tutorials", "Folder", "-", "-", "-"), image=folder_img)
+# tabletree.insert("",index = tk.END , values=("Tutorials", "Folder", "-", "-", "-"), image=folder_img)
+
+tabletree.pack(side=LEFT, fill=BOTH, expand=1)
+
+def item_select(_):
+	print(tabletree.selection())
+	for i in tabletree.selection():
+		print(tabletree.item(i))
+
+tabletree.bind("<<TreeviewSelect>>", item_select)
+
+
+
+
+
+preview_pane = tk.PanedWindow(main_panel, bg="blue", width=250)
 main_panel.add(preview_pane)
+
+# toggle preview pane
+if preview_pane_toggle:
+	main_panel.add(preview_pane)
+else:
+	main_panel.remove(preview_pane)
+
+
 
 label2 = Label(preview_pane, text="Preview Pane")
 preview_pane.add(label2)
 
-
-display_pane = tk.PanedWindow(main_panel,bg="brown", width=100)
-main_panel.add(display_pane)
-
-label3 = Label(display_pane, text="Display Pane")
-display_pane.add(label3)
 
 #
 # # folders view part
@@ -419,6 +472,7 @@ def initial_dir(dir_name):
 	dir_history.clear_history()
 	dir_history.set_initial_dir(dir_name)
 	print("Initial Directory:", dir_name)
+	tabletree.delete(*tabletree.get_children())
 	open_dir(dir_name)
 
 
@@ -438,6 +492,7 @@ def back():
 
 def make_drive_frames(drive):
 	drive_frame = CTkFrame(navigation_pane, fg_color="#434c5e", border_width=0, corner_radius=10)
+	navigation_pane.add(drive_frame)
 	drive_frame.grid(row=drives.index(drive), column=0, pady=5, padx=10, sticky="nw")
 	# drive_frame.pack(side=LEFT, pady=10, padx=10)
 
@@ -462,25 +517,26 @@ def make_drive_frames(drive):
 	my_font = ctk.CTkFont(family=("Helvetika"), size=14, weight="bold")
 
 
-	drive_label = CTkLabel(drive_frame, text=drive[1], font=my_font)
+	drive_label = CTkLabel(drive_frame, text=drive[1], fg_color="transparent", bg_color="transparent", text_color="white", font=my_font)
 	drive_label.grid(row=0, column=1, sticky="nw", pady=(3,0))
 
 	# Progress bar
-	drive_progress_bar = CTkProgressBar(drive_frame, corner_radius=0, border_width=1)
+	drive_progress_bar = CTkProgressBar(drive_frame, corner_radius=0, border_width=1, height=10, progress_color="#4681f4")
 	drive_progress_bar.set(drives_sizes[drive[0]]["used"] / drives_sizes[drive[0]]["total"])
 	drive_progress_bar.grid(row=1, column=1, sticky="nw", padx=(0,5), pady=0)
 
 	# Drive usage label
 	drive_usage = CTkLabel(drive_frame, text=f"{free} GB free of {total} GB", fg_color="transparent", bg_color="transparent", font=("Helvetika", 10))
-	drive_usage.grid(row=2, column=1, sticky="nw", pady=0)
+	drive_usage.grid(row=2, column=1, sticky="nw", pady=(0,5))
 
 	# Bind left-click event to open the drive
 	drive_frame.configure(cursor="hand2")
-	drive_frame.bind("<Button-1>", lambda d=drive: initial_dir(f"{drive}:"))
-	label.bind("<Button-1>", lambda d=drive: initial_dir(f"{drive}:"))
-	# drive_label.bind("<Button-1>", lambda d=drive: initial_dir(f"{drive}:"))
-	drive_usage.bind("<Button-1>", lambda d=drive: print(f"{drive}:"))
-	drive_progress_bar.bind("<Button-1>", lambda d=drive: initial_dir(f"{drive}:"))
+	print(f"drive before initialization: {drive}")
+	drive_frame.bind("<Button-1>", lambda d=drive: initial_dir(f"{drive[0]}"))
+	label.bind("<Button-1>", lambda d=drive: initial_dir(f"{drive[0]}"))
+	drive_label.bind("<Button-1>", lambda d=drive: initial_dir(f"{drive[0]}"))
+	drive_usage.bind("<Button-1>", lambda d=drive: initial_dir(f"{drive[0]}"))
+	drive_progress_bar.bind("<Button-1>", lambda d=drive: initial_dir(f"{drive[0]}"))
 
 	drive_frame.bind('<Enter>', lambda event: enter(drive_frame))
 	label.bind('<Enter>', lambda event: enter(drive_frame))
@@ -551,6 +607,9 @@ def make_buttons(frame, name, type):
 		                   fg_color="#434c5e", hover_color="#4c566a", cursor="hand2", command=lambda: open_foto(name))
 		button.bind("<Double-Button-1>", lambda event: print(name))
 		button.pack(pady=10)
+
+
+
 	elif (type == "folder"):
 		button = ""
 		button = CTkButton(frame, text=name, font=ctk.CTkFont(family=("Helvetika"), size=20, weight="bold"),
@@ -573,27 +632,32 @@ def open_file(file_path):
 
 
 def open_dir(file_path):
-	print(f"Opening file: {file_path}")
+	# this is how th filpath looks like: ['C:\\', 'Windows']
+	print(f"Opening dir: {file_path}")
+	# clear_all_inside_frame(dir_frame)
 
-	clear_all_inside_frame(dir_frame)
-
-	if dir_history.get_current_dir() not in ["C:", "D:"]:
-		button = CTkButton(dir_frame, text="Back", font=ctk.CTkFont(family=("Helvetika"), size=20, weight="bold"),
-		                   fg_color="#d08770", hover_color="#d08780", cursor="hand2", command=lambda: back())
-		button.pack(pady=10)
+	# if dir_history.get_current_dir() not in ["C:", "D:"]:
+		# button = CTkButton(dir_frame, text="Back", font=ctk.CTkFont(family=("Helvetika"), size=20, weight="bold"),
+		#                    fg_color="#d08770", hover_color="#d08780", cursor="hand2", command=lambda: back())
+		# button.pack(pady=10)
 	for file in load_files(file_path):
 		file_dir = f"{dir_history.get_current_dir()}/{file}"
 		# print(f"files: {file_dir}")
 		if os.path.isfile(file_dir):
-			make_buttons(dir_frame, file, "file")
+			# make_buttons( file, "file")
+			tabletree.insert("",index = tk.END , values=(file, "File", "-", "-", "-"), image=file_img)
+
 		# print("IT is a file.")
 		if os.path.isdir(file_dir):
-			make_buttons(dir_frame, file, "folder")
+			# make_buttons( file, "folder")
+			tabletree.insert("",index = tk.END , values=(file, "Folder", "-", "-", "-"), image=folder_img)
+
 		# print("IT is a folder.")
 
 
 def load_files(file_path):
-	files = os.listdir(f"{file_path}\\")
+	print(f"loading: {file_path}")
+	files = os.listdir(file_path)
 	return files
 
 
@@ -604,7 +668,7 @@ drives = get_drives_info()
 for drive in drives:
 	print(drive)
 	# Create the parent frame for the drive
-	# make_drive_frames(drive)
+	make_drive_frames(drive)
 
 # dir_frame = ctk.CTkScrollableFrame(this_pc.app, label_text="Files", height=380)
 # dir_frame.grid(row=4, column=0, columnspan=2, sticky="nsew", padx=10, pady=10)
