@@ -1,0 +1,167 @@
+# get the drives letter and return it
+# def get_drives():
+# 	drives = []
+# 	bitmask = windll.kernel32.GetLogicalDrives()
+# 	for letter in string.ascii_uppercase:
+# 		if bitmask & 1:
+# 			drives.append(letter)
+# 		bitmask >>= 1
+#
+# 	return drives
+
+
+def switch_event():
+	print("switch toggled, current value:", switch_var.get())
+	if switch_var.get() == "on":
+		ctk.set_appearance_mode("dark")
+	else:
+		ctk.set_appearance_mode("light")
+
+
+switch_var = ctk.StringVar(value="on")
+switch = ctk.CTkSwitch(toolbar, text="Dark Mode", command=switch_event,
+                       variable=switch_var, onvalue="on", offvalue="off")
+# switch.pack()
+# Initialize appearance mode based on the initial value of switch_var
+switch_event()
+
+
+
+# def open_new_window(name):
+# 	image_dir = f"{dir_history.get_current_dir()}\\{name}"
+#
+# 	im = cv2.imread(image_dir)
+# 	height, width, _ = im.shape
+# 	scale = min(700 / width, 394 / height)
+# 	cv2.namedWindow("image", cv2.WINDOW_NORMAL)
+# 	cv2.setWindowProperty("image", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+# 	new_width = int(width * scale)
+# 	new_height = int(height * scale)
+# 	# im = cv2.resize(im, (new_width, new_height))
+# 	cv2.imshow("image", im)
+# 	cv2.waitKey()
+
+
+# my_image = Image.open("images\\hdd_white.PNG")
+# my_image = my_image.resize([60, 60])  # Resize the image
+#
+# # Convert the image into a CTkImage object
+# drive_img = ctk.CTkImage(png_img, size=(60, 60))
+#
+# # Create the label with the CTkImage object
+# label = ctk.CTkLabel(drive_frame, image=drive_img, text="")
+# label.grid(row=0, column=0, rowspan=3, sticky="nw", padx=5, pady=(10, 0))
+#
+# # Keep a reference to the image to prevent garbage collection
+# label.image = drive_img
+
+
+# Calculate the x and y offset to center the image
+x_offset = (550 - new_width) // 2
+y_offset = (550 - new_height) // 2
+
+
+def make_buttons(frame, name, type):
+	if (type == "file"):
+		button = ""
+		button = CTkButton(frame, text=name, font=ctk.CTkFont(family=("Helvetika"), size=20, weight="bold"),
+		                   fg_color="#434c5e", hover_color="#4c566a", cursor="hand2", command=lambda: open_foto(name))
+		button.bind("<Double-Button-1>", lambda event: print(name))
+		button.pack(pady=10)
+
+
+
+	elif (type == "folder"):
+		button = ""
+		button = CTkButton(frame, text=name, font=ctk.CTkFont(family=("Helvetika"), size=20, weight="bold"),
+		                   fg_color="#434c5e", hover_color="#4c566a", cursor="hand2", command=lambda: change_dir(name))
+		button.pack(pady=10)
+
+def clear_all_inside_frame(frame):
+	# Iterate through every widget inside the frame
+
+	for widget in frame.winfo_children():
+		widget.destroy()  # deleting widget
+
+
+
+class FloatSpinbox(ctk.CTkFrame):
+	def __init__(self, *args,
+	             width: int = 100,
+	             height: int = 32,
+	             step_size: Union[int, float] = 1,
+	             command: Callable = None,
+	             **kwargs):
+		super().__init__(*args, width=width, height=height, **kwargs)
+
+		self.step_size = step_size
+		self.command = command
+
+		self.configure(fg_color=("gray78", "gray28"))  # set frame color
+
+		self.grid_columnconfigure((0, 2), weight=0)  # buttons don't expand
+		self.grid_columnconfigure(1, weight=1)  # entry expands
+
+		self.subtract_button = ctk.CTkButton(self, text="-", width=height - 6, height=height - 6,
+		                                     command=self.subtract_button_callback)
+		self.subtract_button.grid(row=0, column=0, padx=(3, 0), pady=3)
+
+		self.entry = ctk.CTkEntry(self, width=width - (2 * height), height=height - 6, border_width=0)
+		self.entry.grid(row=0, column=1, columnspan=1, padx=3, pady=3, sticky="ew")
+
+		self.add_button = ctk.CTkButton(self, text="+", width=height - 6, height=height - 6,
+		                                command=self.add_button_callback)
+		self.add_button.grid(row=0, column=2, padx=(0, 3), pady=3)
+
+		# default value
+		self.entry.insert(0, "0.0")
+
+	def add_button_callback(self):
+		if self.command is not None:
+			self.command()
+		try:
+			value = float(self.entry.get()) + self.step_size
+			self.entry.delete(0, "end")
+			self.entry.insert(0, value)
+		except ValueError:
+			return
+
+	def subtract_button_callback(self):
+		if self.command is not None:
+			self.command()
+		try:
+			value = float(self.entry.get()) - self.step_size
+			self.entry.delete(0, "end")
+			self.entry.insert(0, value)
+		except ValueError:
+			return
+
+	def get(self) -> Union[float, None]:
+		try:
+			return float(self.entry.get())
+		except ValueError:
+			return None
+
+	def set(self, value: float):
+		self.entry.delete(0, "end")
+		self.entry.insert(0, str(float(value)))
+
+§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§
+# # List all logical drives
+# partitions = psutil.disk_partitions()
+#
+#
+# # Filter out partitions that have no media (skip 'no media' drives)
+# for partition in partitions:
+#     # Check if the partition is mounted and has a valid device
+#     if partition.fstype and partition.device != '::':
+#         print(f"Device: {partition.device}, Mountpoint: {partition.mountpoint}, File system type: {partition.fstype}")
+#         try:
+#             drives_info = win32api.GetVolumeInformation(partition.mountpoint)
+#             print(drives_info[0])
+#         except Exception as e:
+#             print(f"Error getting volume information for {partition.mountpoint}: {e}")
+
+§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§
+
+
