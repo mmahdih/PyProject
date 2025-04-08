@@ -1,14 +1,21 @@
+import datetime
+import os
 import tkinter as tk
-from shutil import disk_usage
 import ttkbootstrap as ttk
+from Cython.Utils import modification_time
+from ttkbootstrap.constants import *
 import customtkinter as ctk
+from customtkinter import *
+from shutil import disk_usage
 import psutil
 import win32api
-from PIL import Image
-from customtkinter import *
+from PIL import Image, ImageTk
+from pywin.framework.help import helpIDMap
+from ttkbootstrap.icons import Icon
+
+
 
 selected_items = []
-
 
 # the Main window
 class Window:
@@ -21,37 +28,21 @@ class Window:
         self.app = app
         self.app.title("File Explorer")
         self.app.geometry(f"{width}x{height}+{x}+{y}")
-        self.app.attributes("-topmost", True)
+        # self.app.attributes("-topmost", True)
 
     def fullscreen_toggle(self):
         self.app.attributes("-fullscreen", not self.app.attributes("-fullscreen"))
 
 
 # make the main window
-this_pc = Window(1500, 800, tk.Window())
-
-class Make_Button(ctk.CTkButton):
-    def __init__(self, parent, text, width, height, fg_color, hover_color, cursor, command, image=None, padx=0, pady=0):
-        super().__init__(parent, text=text, command=command, width=width, height=height, fg_color=fg_color,
-                         hover_color=hover_color, cursor=cursor, compound="left", border_width=0)
-
-        if image is not None:
-            image = "images\\" + image
-            image = ctk.CTkImage(Image.open(image), size=(width, height))
-            self.configure(image=image, compound="left")
-
-        self.pack(side=LEFT, padx=padx, pady=pady)
-
-    def img(self, image, width, height):
-        image = "images\\" + image
-        image = ctk.CTkImage(Image.open(image), size=(width, height))
-        self.configure(image=image, compound="left")
+this_pc = Window(1500, 800, ttk.Window(themename="superhero"))
 
 
-def copy(event):
-    global selected_items
+def copy():
+    # global selected_items
     print(selected_items)
-    print(dir_history.get_current_dir())
+    # print(dir_history.get_current_dir())
+
 
 
 def cut(event):
@@ -85,129 +76,157 @@ def new_file(event):
     print(selected_items)
 
 
+def milsec_to_time(milsec):
+    return str(datetime.timedelta(seconds=milsec // 1000))
 
 
-toolbar = ctk.CTkFrame(this_pc.app, fg_color="lightblue", border_width=1, corner_radius=0, height=30)
+
+
+
+def open_file():
+    print("opening file")
+    file_stats = os.stat(selected_items[0])
+    print(file_stats)
+    creation_time = datetime.datetime.fromtimestamp(file_stats.st_ctime)
+    modification_time = datetime.datetime.fromtimestamp(file_stats.st_mtime)
+    last_access_time = datetime.datetime.fromtimestamp(file_stats.st_atime)
+    permission = oct(file_stats.st_mode)
+
+
+    print(f"Creation Time: {creation_time}")
+    print(f"Modification Time: {modification_time}")
+    print(f"Last Access Time: {last_access_time}")
+    print(f"Permission: {permission}")
+    print("opening the selected item")
+    for i in selected_items:
+        if not i.endswith(".png"):
+            continue
+        os.startfile(i)
+        print(i)
+    print("open complete")
+    selected_items.clear()
+
+
+
+
+toolbar = ttk.Frame(this_pc.app, height=30)
 toolbar.pack(side=TOP, fill=X, ipady=10, ipadx=10)
 
-back_btn = Make_Button(toolbar, "", 20, 20, "#eceff4", "#4681f4", "hand2", lambda: back(), "back.png", padx=(10, 1))
-back_btn.configure(corner_radius=5)
+class ToolbarButton(ttk.Button):
+    def __init__(self, master, image_path, command, **kwargs):
+        img = ImageTk.PhotoImage(Image.open(image_path).resize((25, 25)))
+        super().__init__(master, image=img,  command=command, **kwargs)
+        self.image = img
 
-forward_btn = Make_Button(toolbar, "", 20, 20, "#eceff4", "#4681f4", "hand2", lambda: print("forward"), "forward.png")
-forward_btn.configure(corner_radius=5)
+back_btn = ToolbarButton(toolbar, "images\\back.png_white.png", lambda: back(), style="Outline.TButton")
+back_btn.pack(side=LEFT, padx=10)
 
-navigation_pane_btn = Make_Button(toolbar, "", 20, 20, "#eceff4", "#4681f4", "hand2", lambda: print("preview pane"),
-                                  "navigation_pane.png", padx=10)
-navigation_pane_btn.configure(corner_radius=5)
+forward_btn = ToolbarButton(toolbar, "images\\forward.png_white.png", lambda: print("forward"), style="Outline.TButton")
+forward_btn.pack(side=LEFT, padx=10)
 
+navigation_pane_btn = ToolbarButton(toolbar, "images\\navigation_pane.png_white.png", lambda: print("navigation pane"), style="Outline.TButton")
+navigation_pane_btn.pack(side=LEFT, padx=10)
 
+preview_pane_btn = ToolbarButton(toolbar, "images\\preview_pane.png_white.png", lambda: print("preview pane"), style="Outline.TButton")
+preview_pane_btn.pack(side=LEFT, padx=10)
 
-# preview pane toolbar button
-preview_pane_btn = Make_Button(toolbar, "", 20, 20, "#eceff4", "#4681f4", "hand2", lambda: print("preview pane"),
-                               "preview_pane.png", padx=10)
-preview_pane_btn.configure(corner_radius=5)
+copy_btn = ToolbarButton(toolbar, "images\\copy.png_white.png", command=lambda: open_file(), style="Outline.TButton")
+copy_btn.pack(side=LEFT, padx=10)
 
-copy_btn = Make_Button(toolbar, "", 20, 20, "#eceff4", "#4681f4", "hand2", lambda: print("copy"), "copy.png", padx=10)
-copy_btn.configure(corner_radius=5)
+cut_btn = ToolbarButton(toolbar, "images\\cut.png_white.png", lambda: print("cut"), style="Outline.TButton")
+cut_btn.pack(side=LEFT, padx=10)
 
-cut_btn = Make_Button(toolbar, "", 20, 20, "#eceff4", "#4681f4", "hand2", lambda: print("cut"), "cut.png", padx=10)
-cut_btn.configure(corner_radius=5)
+paste_btn = ToolbarButton(toolbar, "images\\paste.png_white.png", lambda: print("paste"), style="Outline.TButton")
+paste_btn.pack(side=LEFT, padx=10)
 
-paste_btn = Make_Button(toolbar, "", 20, 20, "#eceff4", "#4681f4", "hand2", lambda: print("paste"), "paste.png",
-                        padx=10)
-paste_btn.configure(corner_radius=5)
+rename_btn = ToolbarButton(toolbar, "images\\rename.png_white.png", lambda: print("rename"), style="Outline.TButton")
+rename_btn.pack(side=LEFT, padx=10)
 
-rename_btn = Make_Button(toolbar, "", 20, 20, "#eceff4", "#4681f4", "hand2", lambda: print("rename"), "rename.png",
-                         padx=10)
-rename_btn.configure(corner_radius=5)
+delete_btn = ToolbarButton(toolbar, "images\\delete.png_white.png", lambda: print("delete"), style="Outline.TButton")
+delete_btn.pack(side=LEFT, padx=10)
 
-delete_btn = Make_Button(toolbar, "", 20, 20, "#eceff4", "#4681f4", "hand2", lambda: print("delete"), "delete.png",
-                         padx=10)
-delete_btn.configure(corner_radius=5)
-
-new_folder_btn = Make_Button(toolbar, "", 20, 20, "#eceff4", "#4681f4", "hand2", lambda: print("new folder"),
-                             "new_folder.png", padx=10)
-new_folder_btn.configure(corner_radius=5)
-
+new_folder_btn = ToolbarButton(toolbar, "images\\new_folder.png_white.png", lambda: print("new folder"), style="Outline.TButton")
+new_folder_btn.pack(side=LEFT, padx=10)
 # # selection pane
 selection_pane = ctk.CTkFrame(this_pc.app, fg_color="#E8E8E8", border_width=1, corner_radius=0, height=30)
 selection_pane.pack(side=BOTTOM, fill=X)
 
-main_panel = tk.PanedWindow(this_pc.app, bg="white", orient=HORIZONTAL)
+main_panel = ttk.PanedWindow(this_pc.app,  orient=HORIZONTAL)
 main_panel.pack(side=LEFT, fill=BOTH, expand=1)
 
-navigation_pane = tk.PanedWindow(main_panel, width=250)
+navigation_pane = ttk.PanedWindow(main_panel, width=250)
 main_panel.add(navigation_pane)
+
+
+
 
 folder_img = tk.PhotoImage(file="images\\folder_color 20.png")
 file_img = tk.PhotoImage(file="images\\file_color_20.png")
 
-middle_pane = tk.PanedWindow(main_panel, bg="white", width=int(this_pc.width - 500))
+middle_pane = ttk.PanedWindow(main_panel,  width=1000, orient=VERTICAL)
 main_panel.add(middle_pane)
 
+
+middle_pane.bind("<BackSpace>", lambda event: print("backspace clicked"))
 tabletree = ttk.Treeview(middle_pane)
 vsb = ttk.Scrollbar(middle_pane, orient="vertical", command=tabletree.yview)
 
-# Create a new style for the vertical scrollbar
-# style = ttk.Style()
-# style.theme_use('default')  # Ensure the correct theme is used
-# style.configure('Vertical.TScrollbar',
-#                 width=10,
-#                 background='black',
-#                 gripcount=0,
-#                 arrowsize=0,
-#                 borderwidth=10,
-#                 troughcolor='black',
-#                 relief='flat')
-#
-# # Apply the new style to the vertical scrollbar
-# vsb.configure(style='Vertical.TScrollbar')
 
 vsb.pack(side=RIGHT, fill=Y)
 hsb = ttk.Scrollbar(middle_pane, orient="horizontal", command=tabletree.xview)
 hsb.pack(side=BOTTOM, fill=X)
 tabletree.configure(yscrollcommand=vsb.set, xscrollcommand=hsb.set)
-tabletree.tag_configure("larg", font=("arial", 16))
-tabletree["columns"] = ("Name", "File Type", "Size", "Date Created", "Date Modified")
+tabletree.tag_configure("large", font=("arial", 16))
+tabletree["columns"] = ("Name", "File Type", "Date Created", "Date Modified" , "Size")
 
 tabletree.column("#0", width=40, minwidth=40, stretch=FALSE)
 tabletree.column("Name", width=200, stretch=FALSE)
 tabletree.column("File Type", width=100, anchor="center", stretch=FALSE)
-tabletree.column("Size", width=100, anchor="center", stretch=FALSE)
-tabletree.column("Date Created", width=100, anchor="center", stretch=FALSE)
-tabletree.column("Date Modified", width=100, anchor="center", stretch=FALSE)
+tabletree.column("Date Created", width=150, anchor="center", stretch=FALSE)
+tabletree.column("Date Modified", width=150, anchor="center", stretch=FALSE)
+tabletree.column("Size", width=100, anchor="e", stretch=FALSE)
 
 tabletree.heading("#0", text="", )
 tabletree.heading("Name", text="Name", anchor="w")
 tabletree.heading("File Type", text="File Type")
-tabletree.heading("Size", text="Size")
 tabletree.heading("Date Created", text="Date Created")
 tabletree.heading("Date Modified", text="Date Modified")
+tabletree.heading("Size", text="Size")
 
 tabletree.pack(side=LEFT, fill=BOTH, expand=1)
 
 
 def item_select(_):
-    print(tabletree.selection())
+    # print("Double Click")
+    # print(tabletree.selection())
     for i in tabletree.selection():
-        print(tabletree.item(i)["values"][0])
+        # print(tabletree.item(i)["values"][0])
         if tabletree.item(i)["values"][1] == "File":
             print("Files")
+            os.startfile(f"{dir_history.get_current_dir()}\\{tabletree.item(i)['values'][0]}")
         elif tabletree.item(i)["values"][1] == "Folder":
             change_dir(tabletree.item(i)["values"][0])
 
 
-tabletree.bind("<<TreeviewSelect>>", item_select)
 
-preview_pane = tk.PanedWindow(main_panel, bg="blue", width=250)
+def single_click(_):
+    # print("Single Click")
+    # print(tabletree.selection())
+    for i in tabletree.selection():
+        print(tabletree.item(i)["values"][0])
+        file_dir = f"{dir_history.get_current_dir()}\\{tabletree.item(i)['values'][0]}"
+        print(file_dir)
+        selected_items.append(file_dir)
+
+
+
+
+# tabletree.bind("<<TreeviewSelect>>", item_select)
+tabletree.bind('<ButtonRelease-1>', single_click)
+tabletree.bind('<Double-1>', item_select)
+
+preview_pane = ttk.PanedWindow(main_panel, width=250)
 main_panel.add(preview_pane)
-
-preview_pane_toggle = TRUE
-# toggle preview pane
-if preview_pane_toggle:
-    main_panel.add(preview_pane)
-else:
-    main_panel.remove(preview_pane)
 
 label2 = ttk.Label(preview_pane, text="Preview Pane")
 preview_pane.add(label2)
@@ -288,12 +307,12 @@ def open_foto(name):
     label.image = my_image
 
 
-def enter(frame):
-    frame.configure(border_width=2, border_color="lightblue", fg_color="#4c566a")
-
-
-def exit_(frame):
-    frame.configure(fg_color="#434c5e", border_width=0, corner_radius=10)
+# def enter(frame):
+#     frame.configure(border_width=2, border_color="lightblue", fg_color="#4c566a")
+#
+#
+# def exit_(frame):
+#     frame.configure(fg_color="#434c5e", border_width=0, corner_radius=10)
 
 
 def initial_dir(dir_name):
@@ -321,45 +340,42 @@ def back():
 
 
 def make_drive_frames(drive):
-    drive_frame = CTkFrame(navigation_pane, fg_color="#434c5e", border_width=0, corner_radius=10)
+    # Create a frame with improved style
+    drive_frame = ttk.Frame(navigation_pane, style="primary.TFrame", width=300, height=100)
     navigation_pane.add(drive_frame)
-    drive_frame.grid(row=drives.index(drive), column=0, pady=5, padx=10, sticky="nw")
-    # drive_frame.pack(side=LEFT, pady=10, padx=10)
 
-    # drive sizes
+    # Grid configuration with more spacing
+    drive_frame.grid(row=drives.index(drive), column=0, pady=15, padx=20, sticky="nsew")
+
+    # Get disk usage
     total, used, free = disk_usage(drive[0])
     drives_sizes[drive[0]] = {"total": total, "used": used, "free": free}
 
-    # add an icon for each drive
-    png_img = Image.open("images\\hdd_white.PNG")
-    png_img = png_img.resize([60, 60])  # Resize the image
+    drive_img = ImageTk.PhotoImage(Image.open("images\\hdd_white.png").resize((45,45)))
 
-    # Convert the image into a CTkImage object
-    drive_img = ctk.CTkImage(png_img, size=(35, 35))
-
-    # Create the label with the CTkImage object
-    label = ctk.CTkLabel(drive_frame, image=drive_img, text="")
-    label.grid(row=0, column=0, rowspan=3, sticky="nw", padx=5, pady=(10, 0))
+    # Create a label with the CTkImage object
+    label = ttk.Label(drive_frame, image=drive_img, text="", style="primary.Inverse.TLabel")
+    label.grid(row=0, column=0, rowspan=3, sticky="nsew", padx=5, pady=(15, 0))
 
     # Keep a reference to the image to prevent garbage collection
     label.image = drive_img
 
-    my_font = ctk.CTkFont(family=("Helvetika"), size=14, weight="bold")
+    # Drive label with a more modern font and spacing
+    drive_label = ttk.Label(drive_frame, text=drive[1], style="primary.Inverse.TLabel", font=("Helvetica", 14, "bold"))
+    drive_label.grid(row=0, column=1, sticky="nsew", pady=(5, 0), padx=5)
 
-    drive_label = CTkLabel(drive_frame, text=drive[1], fg_color="transparent", bg_color="transparent",
-                           text_color="white", font=my_font)
-    drive_label.grid(row=0, column=1, sticky="nw", pady=(3, 0))
+    # Progress bar with a cleaner and more modern look using ttkbootstrap's styles
+    drive_progress_bar = ttk.Progressbar(drive_frame, orient="horizontal", style="success.Horizontal.TProgressbar")
+    drive_progress_bar.grid(row=1, column=1, sticky="nsew", pady=(5, 0), padx=(5, 10))
+    drive_progress_bar['maximum'] = 100  # Set maximum value as percentage
+    drive_progress_bar['value'] = (used / total) * 100  # Calculate the used percentage
+    drive_progress_bar['length'] = 200  # Set a fixed length for consistency
 
-    # Progress bar
-    drive_progress_bar = CTkProgressBar(drive_frame, corner_radius=0, border_width=1, height=10,
-                                        progress_color="#4681f4")
-    drive_progress_bar.set(drives_sizes[drive[0]]["used"] / drives_sizes[drive[0]]["total"])
-    drive_progress_bar.grid(row=1, column=1, sticky="nw", padx=(0, 5), pady=0)
+    # Drive usage label with better font and spacing
+    drive_usage = ttk.Label(drive_frame, text=f"{free} GB free of {total} GB", font=("Helvetica", 10),
+                            style="primary.Inverse.TLabel")
+    drive_usage.grid(row=2, column=1, sticky="nsew", pady=(5, 10), padx=5)
 
-    # Drive usage label
-    drive_usage = CTkLabel(drive_frame, text=f"{free} GB free of {total} GB", fg_color="transparent",
-                           bg_color="transparent", font=("Helvetika", 10))
-    drive_usage.grid(row=2, column=1, sticky="nw", pady=(0, 5))
 
     # Bind left-click event to open the drive
     drive_frame.configure(cursor="hand2")
@@ -370,17 +386,19 @@ def make_drive_frames(drive):
     drive_usage.bind("<Button-1>", lambda d=drive: initial_dir(f"{drive[0]}"))
     drive_progress_bar.bind("<Button-1>", lambda d=drive: initial_dir(f"{drive[0]}"))
 
-    drive_frame.bind('<Enter>', lambda event: enter(drive_frame))
-    label.bind('<Enter>', lambda event: enter(drive_frame))
-    drive_label.bind('<Enter>', lambda event: enter(drive_frame))
-    drive_usage.bind('<Enter>', lambda event: enter(drive_frame))
-    drive_progress_bar.bind('<Enter>', lambda event: enter(drive_frame))
+    # drive_frame.bind('<Enter>', lambda event: drive_frame.configure(style="primary.TButton"))
+    # label.bind('<Enter>', lambda event: drive_frame.configure(style="primary.TButton"))
+    # drive_label.bind('<Enter>', lambda event: drive_frame.configure(style="primary.TButton"))
+    # drive_usage.bind('<Enter>', lambda event: drive_frame.configure(style="primary.TButton"))
+    # drive_progress_bar.bind('<Enter>', lambda event: drive_frame.configure(style="primary.TButton"))
+    #
+    # drive_frame.bind('<Leave>', lambda event: exit_(drive_frame))
+    # label.bind('<Leave>', lambda event: exit_(drive_frame))
+    # drive_label.bind('<Leave>', lambda event: exit_(drive_frame))
+    # drive_usage.bind('<Leave>', lambda event: exit_(drive_frame))
+    # drive_progress_bar.bind('<Leave>', lambda event: exit_(drive_frame))
 
-    drive_frame.bind('<Leave>', lambda event: exit_(drive_frame))
-    label.bind('<Leave>', lambda event: exit_(drive_frame))
-    drive_label.bind('<Leave>', lambda event: exit_(drive_frame))
-    drive_usage.bind('<Leave>', lambda event: exit_(drive_frame))
-    drive_progress_bar.bind('<Leave>', lambda event: exit_(drive_frame))
+
 
 
 def get_drives_info():
@@ -417,8 +435,35 @@ def disk_usage(drive_letter):
     return total, used, free
 
 
-def open_file(file_path):
-    print(f"Opening file: {file_path}")
+
+def get_file_size(file_path):
+    file_stats = os.stat(file_path)
+
+    # file size in bytes
+    bytes = file_stats.st_size
+
+    # convert bytes to KB
+    kb = bytes / 1024
+
+    # round to 2 decimal places
+    kb = round(kb, 0)
+
+    print(f"File size: {kb} KB")
+
+    # convert bytes to MB
+    mb = bytes / 1024 / 1024
+
+    # round to 2 decimal places
+    mb = round(mb, 3)
+
+    print(f"File size: {mb} MB")
+
+    #
+
+    if kb < 1024:
+        return f"{kb} KB"
+    else:
+        return f"{mb} MB"
 
 
 def open_dir(file_path):
@@ -427,10 +472,21 @@ def open_dir(file_path):
 
     for file in load_files(file_path):
         file_dir = f"{dir_history.get_current_dir()}/{file}"
+
+        file_stats = os.stat(file_dir)
+        print(file_stats)
+        creation_time = datetime.datetime.fromtimestamp(file_stats.st_ctime)
+        modification_time = datetime.datetime.fromtimestamp(file_stats.st_mtime)
+        last_access_time = datetime.datetime.fromtimestamp(file_stats.st_atime)
+        file_size = get_file_size(file_dir)
+        # file_size = f"{round(file_stats.st_size / 1024, 2)} KB"
+
+        permission = oct(file_stats.st_mode)
+
         if os.path.isfile(file_dir):
-            tabletree.insert("", index=tk.END, values=(file, "File", "-", "-", "-"), image=file_img)
+            tabletree.insert("", index=tk.END, values=(file, "File", creation_time, modification_time, file_size), image=file_img)
         if os.path.isdir(file_dir):
-            tabletree.insert("", index=tk.END, values=(file, "Folder", "-", "-", "-"), image=folder_img)
+            tabletree.insert("", index=tk.END, values=(file, "Folder",creation_time, modification_time, ""), image=folder_img)
 
 
 def load_files(file_path):

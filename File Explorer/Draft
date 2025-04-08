@@ -164,4 +164,7 @@ class FloatSpinbox(ctk.CTkFrame):
 
 §§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§
 
+Adding an icon from ttk icon library
+# img = tk.PhotoImage(data=Icon.info)
 
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
