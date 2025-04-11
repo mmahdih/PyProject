@@ -1,6 +1,10 @@
 import datetime
 import os
-import tkinter as tk
+from ensurepip import bootstrap
+from tkinter import Canvas
+
+import ttkbootstrap
+# import tkinter as tk
 import ttkbootstrap as ttk
 from Cython.Utils import modification_time
 from ttkbootstrap.constants import *
@@ -12,165 +16,65 @@ import win32api
 from PIL import Image, ImageTk
 from pywin.framework.help import helpIDMap
 from ttkbootstrap.icons import Icon
+from uri_template import expand
+
+# my packges
+from Utils.functions import *
+from Utils.folders_tree import *
+from Utils.classes import *
+from gui_components.folders import *
+from gui_components.preview_pane import *
+from gui_components.navigation_pane import *
+from gui_components.toolbar import *
 
 
 
 selected_items = []
 
-# the Main window
-class Window:
-    def __init__(self, width, height, app):
-        x = (app.winfo_screenwidth() - width) // 2
-        y = (app.winfo_screenheight() - height) // 2
+# make the main window with superhero theme
+this_pc = Window(1500, 800, ttkbootstrap.Window(themename="superhero"))
 
-        self.width = width
-        self.height = height
-        self.app = app
-        self.app.title("File Explorer")
-        self.app.geometry(f"{width}x{height}+{x}+{y}")
-        # self.app.attributes("-topmost", True)
-
-    def fullscreen_toggle(self):
-        self.app.attributes("-fullscreen", not self.app.attributes("-fullscreen"))
-
-
-# make the main window
-this_pc = Window(1500, 800, ttk.Window(themename="superhero"))
-
-
-def copy():
-    # global selected_items
-    print(selected_items)
-    # print(dir_history.get_current_dir())
-
-
-
-def cut(event):
-    global selected_items
-    print(selected_items)
-    print(dir_history.get_current_dir())
-
-def rename(event):
-    global selected_items
-    print(selected_items)
-    print(dir_history.get_current_dir())
-
-def delete(event):
-    global selected_items
-    print(selected_items)
-    print(dir_history.get_current_dir())
-
-def paste(event):
-    global selected_items
-    print(selected_items)
-    print(dir_history.get_current_dir())
-
-def new_folder(event):
-    global selected_items
-    print(selected_items)
-    print(dir_history.get_current_dir())
-
-
-def new_file(event):
-    global selected_items
-    print(selected_items)
-
-
-def milsec_to_time(milsec):
-    return str(datetime.timedelta(seconds=milsec // 1000))
-
-
-
-
-
-def open_file():
-    print("opening file")
-    file_stats = os.stat(selected_items[0])
-    print(file_stats)
-    creation_time = datetime.datetime.fromtimestamp(file_stats.st_ctime)
-    modification_time = datetime.datetime.fromtimestamp(file_stats.st_mtime)
-    last_access_time = datetime.datetime.fromtimestamp(file_stats.st_atime)
-    permission = oct(file_stats.st_mode)
-
-
-    print(f"Creation Time: {creation_time}")
-    print(f"Modification Time: {modification_time}")
-    print(f"Last Access Time: {last_access_time}")
-    print(f"Permission: {permission}")
-    print("opening the selected item")
-    for i in selected_items:
-        if not i.endswith(".png"):
-            continue
-        os.startfile(i)
-        print(i)
-    print("open complete")
-    selected_items.clear()
-
-
-
-
-toolbar = ttk.Frame(this_pc.app, height=30)
-toolbar.pack(side=TOP, fill=X, ipady=10, ipadx=10)
-
-class ToolbarButton(ttk.Button):
-    def __init__(self, master, image_path, command, **kwargs):
-        img = ImageTk.PhotoImage(Image.open(image_path).resize((25, 25)))
-        super().__init__(master, image=img,  command=command, **kwargs)
-        self.image = img
-
-back_btn = ToolbarButton(toolbar, "images\\back.png_white.png", lambda: back(), style="Outline.TButton")
-back_btn.pack(side=LEFT, padx=10)
-
-forward_btn = ToolbarButton(toolbar, "images\\forward.png_white.png", lambda: print("forward"), style="Outline.TButton")
-forward_btn.pack(side=LEFT, padx=10)
-
-navigation_pane_btn = ToolbarButton(toolbar, "images\\navigation_pane.png_white.png", lambda: print("navigation pane"), style="Outline.TButton")
-navigation_pane_btn.pack(side=LEFT, padx=10)
-
-preview_pane_btn = ToolbarButton(toolbar, "images\\preview_pane.png_white.png", lambda: print("preview pane"), style="Outline.TButton")
-preview_pane_btn.pack(side=LEFT, padx=10)
-
-copy_btn = ToolbarButton(toolbar, "images\\copy.png_white.png", command=lambda: open_file(), style="Outline.TButton")
-copy_btn.pack(side=LEFT, padx=10)
-
-cut_btn = ToolbarButton(toolbar, "images\\cut.png_white.png", lambda: print("cut"), style="Outline.TButton")
-cut_btn.pack(side=LEFT, padx=10)
-
-paste_btn = ToolbarButton(toolbar, "images\\paste.png_white.png", lambda: print("paste"), style="Outline.TButton")
-paste_btn.pack(side=LEFT, padx=10)
-
-rename_btn = ToolbarButton(toolbar, "images\\rename.png_white.png", lambda: print("rename"), style="Outline.TButton")
-rename_btn.pack(side=LEFT, padx=10)
-
-delete_btn = ToolbarButton(toolbar, "images\\delete.png_white.png", lambda: print("delete"), style="Outline.TButton")
-delete_btn.pack(side=LEFT, padx=10)
-
-new_folder_btn = ToolbarButton(toolbar, "images\\new_folder.png_white.png", lambda: print("new folder"), style="Outline.TButton")
-new_folder_btn.pack(side=LEFT, padx=10)
-# # selection pane
-selection_pane = ctk.CTkFrame(this_pc.app, fg_color="#E8E8E8", border_width=1, corner_radius=0, height=30)
-selection_pane.pack(side=BOTTOM, fill=X)
-
-main_panel = ttk.PanedWindow(this_pc.app,  orient=HORIZONTAL)
-main_panel.pack(side=LEFT, fill=BOTH, expand=1)
-
-navigation_pane = ttk.PanedWindow(main_panel, width=250)
-main_panel.add(navigation_pane)
-
-
-
+# Dir History
+dir_history = DirectoryHistory()
 
 folder_img = tk.PhotoImage(file="images\\folder_color 20.png")
 file_img = tk.PhotoImage(file="images\\file_color_20.png")
 
-middle_pane = ttk.PanedWindow(main_panel,  width=1000, orient=VERTICAL)
-main_panel.add(middle_pane)
+
+# Define toolbar buttons and their commands
+toolbar_commands = [
+    ("images\\back.png_white.png", lambda: back()),
+    ("images\\forward.png_white.png", lambda: print("forward")),
+    ("images\\navigation_pane.png_white.png", lambda: print("navigation_pane")),
+    ("images\\preview_pane.png_white.png", lambda: print("preview pane")),
+    ("images\\copy.png_white.png", lambda: open_file(selected_items)),
+    ("images\\cut.png_white.png", lambda: print("cut")),
+    ("images\\paste.png_white.png", lambda: print("paste")),
+    ("images\\rename.png_white.png", lambda: print("rename")),
+    ("images\\delete.png_white.png", lambda: print("delete")),
+    ("images\\new_folder.png_white.png", lambda: print("new folder"))
+]
+
+# Create the toolbar, selection pane, and main panel
+toolbar = create_toolbar(this_pc.app, toolbar_commands)
+selection_pane = create_selection_pane(this_pc.app)
+main_panel = create_main_panel(this_pc.app)
+navigation_pane = create_navigation_pane(main_panel)
+middle_pane = create_middle_pane(main_panel)
+preview_pane = create_preview_pane(main_panel)
 
 
-middle_pane.bind("<BackSpace>", lambda event: print("backspace clicked"))
+# Function to sort the Treeview by column
+def sort_treeview(tree, col, descending):
+    data = [(tree.set(item, col), item) for item in tree.get_children('')]
+    data.sort(reverse=descending)
+    for index, (val, item) in enumerate(data):
+        tree.move(item, '', index)
+    tree.heading(col, command=lambda: sort_treeview(tree, col, not descending))
+
+
 tabletree = ttk.Treeview(middle_pane)
 vsb = ttk.Scrollbar(middle_pane, orient="vertical", command=tabletree.yview)
-
 
 vsb.pack(side=RIGHT, fill=Y)
 hsb = ttk.Scrollbar(middle_pane, orient="horizontal", command=tabletree.xview)
@@ -181,12 +85,12 @@ tabletree["columns"] = ("Name", "File Type", "Date Created", "Date Modified" , "
 
 tabletree.column("#0", width=40, minwidth=40, stretch=FALSE)
 tabletree.column("Name", width=200, stretch=FALSE)
-tabletree.column("File Type", width=100, anchor="center", stretch=FALSE)
-tabletree.column("Date Created", width=150, anchor="center", stretch=FALSE)
-tabletree.column("Date Modified", width=150, anchor="center", stretch=FALSE)
+tabletree.column("File Type", width=100, anchor="w", stretch=FALSE)
+tabletree.column("Date Created", width=150, anchor="w", stretch=FALSE)
+tabletree.column("Date Modified", width=150, anchor="w", stretch=FALSE)
 tabletree.column("Size", width=100, anchor="e", stretch=FALSE)
 
-tabletree.heading("#0", text="", )
+tabletree.heading("#0", text="" )
 tabletree.heading("Name", text="Name", anchor="w")
 tabletree.heading("File Type", text="File Type")
 tabletree.heading("Date Created", text="Date Created")
@@ -196,14 +100,16 @@ tabletree.heading("Size", text="Size")
 tabletree.pack(side=LEFT, fill=BOTH, expand=1)
 
 
-def item_select(_):
+def double_click(_):
     # print("Double Click")
     # print(tabletree.selection())
     for i in tabletree.selection():
         # print(tabletree.item(i)["values"][0])
-        if tabletree.item(i)["values"][1] == "File":
+        if tabletree.item(i)["values"][1] in ["png", "jpg", "jpeg"]:
             print("Files")
-            os.startfile(f"{dir_history.get_current_dir()}\\{tabletree.item(i)['values'][0]}")
+            # os.startfile(f"{dir_history.get_current_dir()}\\{tabletree.item(i)['values'][0]}")
+
+            create_photo_viewer(tabletree.item(i)['values'][0])
         elif tabletree.item(i)["values"][1] == "Folder":
             change_dir(tabletree.item(i)["values"][0])
 
@@ -218,63 +124,172 @@ def single_click(_):
         print(file_dir)
         selected_items.append(file_dir)
 
-
-
-
-# tabletree.bind("<<TreeviewSelect>>", item_select)
+# tabletree.bind("<<TreeviewSelect>>", double_click)
 tabletree.bind('<ButtonRelease-1>', single_click)
-tabletree.bind('<Double-1>', item_select)
+tabletree.bind('<Double-1>', double_click)
 
-preview_pane = ttk.PanedWindow(main_panel, width=250)
-main_panel.add(preview_pane)
 
+# Add elements to the preview pane
 label2 = ttk.Label(preview_pane, text="Preview Pane")
 preview_pane.add(label2)
 
 
-# the directory history
-class DirectoryHistory:
-    def __init__(self):
-        self.history = []
 
-    def change_dir(self, new_dir):
-        self.history.append(new_dir)
-        delimiter = '\\'
-        joined = delimiter.join(self.history)
-        print(f"History: {joined}")
-
-        print(f"Changing directory to: {new_dir}")
-
-        self.current_dir = joined
-
-        print(f"Current Directory: {self.current_dir}")
-        return self.current_dir
-
-    def go_back(self):
-        if len(self.history) > 0:
-            self.history.pop()
-            delimiter = '\\'
-            joined = delimiter.join(self.history)
-            self.current_dir = joined
-        else:
-            print("No previous directory available")
-
-        print(f"Current Directory: {self.current_dir}")
-
-        return self.current_dir
-
-    def get_current_dir(self):
-        return self.current_dir
-
-    def clear_history(self):
-        self.history = []
-
-    def set_initial_dir(self, initial_dir):
-        self.current_dir = initial_dir
-        self.history.append(initial_dir)
+def next_image(all_images, current_image_position):
+    print("Next Image")
+    create_photo_viewer(all_images[(current_image_position + 1) % len(all_images)])
 
 
-dir_history = DirectoryHistory()
+def previous_image(all_images, current_image_position):
+    print("Previous Image")
+    create_photo_viewer(all_images[(current_image_position - 1) % len(all_images)])
+
+
+def create_photo_viewer(image):
+    for widget in preview_pane.winfo_children():
+        print(f"Widget: {widget}")
+        widget.destroy()
+
+    image_dir = f"{dir_history.get_current_dir()}\\{image}"
+    print(f"Image dir: {image_dir}")
+
+    try:
+        image_import = Image.open(image_dir)
+    except IOError:
+        print(f"Error: Could not load image {image}")
+        return
+
+    image_ratio = image_import.size[0] / image_import.size[1]
+    print("image Ratio: %s" % image_ratio)
+    image_tk = ImageTk.PhotoImage(image_import)
+    if image_tk is None:
+        print(f"Error: Could not load image {image}")
+        return
+
+    print(f"Image {image} loaded successfully")
+
+    canvas = ctk.CTkCanvas(preview_pane, width=preview_pane.winfo_width() - 50, height=preview_pane.winfo_height() - 50)
+    preview_pane.add(canvas)
+
+    canvas.bind("<Configure>", lambda event, image=image_tk: resize_image(canvas, event, image_import, image_tk, image_ratio))
+    canvas.image = image_tk
+
+    all_images = [file for file in os.listdir(dir_history.get_current_dir()) if
+                  file.lower().endswith(('.png', '.jpg', '.jpeg'))]
+
+
+    # find the current iamge position
+    if image in all_images:
+        current_image_position = all_images.index(image)
+        print(current_image_position)
+    else:
+        print("image not found")
+
+    button_frame = ctk.CTkFrame(preview_pane)
+    preview_pane.add(button_frame)
+
+    next_image_button = ctk.CTkButton(button_frame, text="Next",
+                                      command=lambda: next_image(all_images, current_image_position))
+    next_image_button.pack(side=LEFT,  expand=True)
+
+    prev_image_button = ctk.CTkButton(button_frame, text="Previous", command=lambda: previous_image(all_images, current_image_position))
+    prev_image_button.pack(side=LEFT,  expand=True)
+
+    if len(all_images) > 1:
+        next_image_button.configure(state="normal")
+        prev_image_button.configure(state="normal")
+    else:
+
+        next_image_button.configure(state="disabled")
+        prev_image_button.configure(state="disabled")
+
+
+def resize_image(canvas, event, image_import, image_tk, image_ratio):
+
+    # current canvas ratio
+    canvas_ratio = event.width / event.height
+    print(f"canvas ratio: {canvas_ratio}")
+    print(f"image ratio: {image_ratio}")
+
+    if canvas_ratio > image_ratio:
+        image_height = event.height
+        image_width = int(image_height * image_ratio)
+    else:
+        image_width = event.width
+        image_height = int(image_width / image_ratio)
+
+    print(f"canvas size: {event.width} x {event.height}")
+    print(f"image size: {image_width} x {image_height}")
+
+    resized_image = image_import.resize((image_width, image_height))
+    image_tk = ImageTk.PhotoImage(resized_image)
+
+    canvas.delete("all")
+    canvas.create_image(event.width / 2, event.height / 2, image=image_tk, anchor="center")
+    canvas.image = image_tk
+
+
+
+#     # Clear the previous frame
+#     for widget in preview_pane.winfo_children():
+#         widget.destroy()
+#
+#     photo_viewer_frame = ctk.CTkFrame(preview_pane, corner_radius=10, width=700, height=394)
+#     preview_pane.add(photo_viewer_frame)
+#
+#     image_dir = f"{dir_history.get_current_dir()}\\{image}"
+#     print(f"the image: {image_dir}")
+#
+#     # Get all images in the current directory with the .png .jpg .jpeg extension
+#     all_images = [file for file in os.listdir(dir_history.get_current_dir()) if file.lower().endswith(('.png', '.jpg', '.jpeg'))]
+#
+#
+#     # find the current iamge position
+#     if image in all_images:
+#         current_image_position = all_images.index(image)
+#         print(current_image_position)
+#     else:
+#         print("image not found")
+#
+#     my_image = Image.open(image_dir)
+#     print("test")
+#     print(my_image)
+#     width, height = my_image.size
+#     print(f"width: {width}, height: {height}")
+#
+#     image_ratio = width / height
+#     print(f"image ratio: {image_ratio}")
+#
+#     scale = min(700 / width, 394 / height)
+#     new_width = int(width * scale)
+#     new_height = int(height * scale)
+#     the_image = ctk.CTkImage(my_image, size=(width / 2, height / 2))
+#
+#     # Create the label with the CTkImage object
+#     label = ctk.CTkLabel(photo_viewer_frame, image=the_image, text="", bg_color="gray10")
+#     label.place(relx=0.5, rely=0.5, anchor="center")
+#
+#     next_image_button = ctk.CTkButton(photo_viewer_frame, text="Next", command=lambda: next_image(all_images, current_image_position))
+#     next_image_button.place(relx=0.8, rely=0.9, anchor="center")
+#
+#     prev_image_button = ctk.CTkButton(photo_viewer_frame, text="Previous", command=lambda: previous_image(all_images, current_image_position))
+#     prev_image_button.place(relx=0.2, rely=0.9, anchor="center")
+#
+#
+#     print(len(all_images))
+#
+#     if len(all_images) > 1:
+#         next_image_button.configure(state="normal")
+#         prev_image_button.configure(state="normal")
+#     else:
+#
+#         next_image_button.configure(state="disabled")
+#         prev_image_button.configure(state="disabled")
+#
+#     # Keep a reference to the image to prevent garbage collection
+#     label.image = my_image
+#
+#     return photo_viewer_frame
 
 # bind the F11 key to toggle fullscreen
 this_pc.app.bind("<F11>", lambda event: this_pc.fullscreen_toggle())
@@ -307,20 +322,13 @@ def open_foto(name):
     label.image = my_image
 
 
-# def enter(frame):
-#     frame.configure(border_width=2, border_color="lightblue", fg_color="#4c566a")
-#
-#
-# def exit_(frame):
-#     frame.configure(fg_color="#434c5e", border_width=0, corner_radius=10)
-
 
 def initial_dir(dir_name):
     dir_history.clear_history()
     dir_history.set_initial_dir(dir_name)
     print("Initial Directory:", dir_name)
     tabletree.delete(*tabletree.get_children())
-    open_dir(dir_name)
+    open_dir(dir_name, dir_history, tabletree, file_img, folder_img)
 
 
 def change_dir(dir_name):
@@ -328,7 +336,7 @@ def change_dir(dir_name):
     new_dir = dir_history.change_dir(dir_name)
     print("Current Directory: A: ", dir_history.get_current_dir())
     tabletree.delete(*tabletree.get_children())
-    open_dir(new_dir)
+    open_dir(new_dir, dir_history, tabletree, file_img, folder_img)
 
 
 def back():
@@ -336,7 +344,7 @@ def back():
     new_dir = dir_history.go_back()
     print("Current Directory: A: ", dir_history.get_current_dir())
     tabletree.delete(*tabletree.get_children())
-    open_dir(new_dir)
+    open_dir(new_dir, dir_history, tabletree, file_img, folder_img)
 
 
 def make_drive_frames(drive):
@@ -349,7 +357,6 @@ def make_drive_frames(drive):
 
     # Get disk usage
     total, used, free = disk_usage(drive[0])
-    drives_sizes[drive[0]] = {"total": total, "used": used, "free": free}
 
     drive_img = ImageTk.PhotoImage(Image.open("images\\hdd_white.png").resize((45,45)))
 
@@ -380,122 +387,11 @@ def make_drive_frames(drive):
     # Bind left-click event to open the drive
     drive_frame.configure(cursor="hand2")
     print(f"drive before initialization: {drive}")
-    drive_frame.bind("<Button-1>", lambda d=drive: initial_dir(f"{drive[0]}"))
-    label.bind("<Button-1>", lambda d=drive: initial_dir(f"{drive[0]}"))
-    drive_label.bind("<Button-1>", lambda d=drive: initial_dir(f"{drive[0]}"))
-    drive_usage.bind("<Button-1>", lambda d=drive: initial_dir(f"{drive[0]}"))
-    drive_progress_bar.bind("<Button-1>", lambda d=drive: initial_dir(f"{drive[0]}"))
+    def open_drive(event):
+        initial_dir(f"{drive[0]}")
+    for widget in (drive_frame, label, drive_label, drive_usage, drive_progress_bar):
+        widget.bind("<Button-1>", open_drive)
 
-    # drive_frame.bind('<Enter>', lambda event: drive_frame.configure(style="primary.TButton"))
-    # label.bind('<Enter>', lambda event: drive_frame.configure(style="primary.TButton"))
-    # drive_label.bind('<Enter>', lambda event: drive_frame.configure(style="primary.TButton"))
-    # drive_usage.bind('<Enter>', lambda event: drive_frame.configure(style="primary.TButton"))
-    # drive_progress_bar.bind('<Enter>', lambda event: drive_frame.configure(style="primary.TButton"))
-    #
-    # drive_frame.bind('<Leave>', lambda event: exit_(drive_frame))
-    # label.bind('<Leave>', lambda event: exit_(drive_frame))
-    # drive_label.bind('<Leave>', lambda event: exit_(drive_frame))
-    # drive_usage.bind('<Leave>', lambda event: exit_(drive_frame))
-    # drive_progress_bar.bind('<Leave>', lambda event: exit_(drive_frame))
-
-
-
-
-def get_drives_info():
-    # List all logical drives
-    partitions = psutil.disk_partitions()
-    print(f"Partitions: {partitions}")
-    drives = []
-
-    # Filter out partitions that have no media (skip 'no media' drives)
-    for partition in partitions:
-        # Check if the partition is mounted and has a valid device
-        if partition.fstype and partition.device != '::':
-            try:
-                drives_info = win32api.GetVolumeInformation(partition.mountpoint)
-                drives.append([partition.mountpoint, drives_info[0]])
-            except Exception as e:
-                print(f"Error getting volume information for {partition.mountpoint}: {e}")
-    print(drives)
-    return drives
-
-
-# get the disk usage of the hard drive
-def disk_usage(drive_letter):
-    hdd = psutil.disk_usage(drive_letter)
-
-    total = round(hdd.total / 1024 / 1024 / 1024, 2)
-    used = round(hdd.used / 1024 / 1024 / 1024, 2)
-    free = round(hdd.free / 1024 / 1024 / 1024, 2)
-
-    print(f"DISK Total: {total} GB")
-    print(f"Disk Used: {used} GB")
-    print(f"Disk Free: {free} GB")
-
-    return total, used, free
-
-
-
-def get_file_size(file_path):
-    file_stats = os.stat(file_path)
-
-    # file size in bytes
-    bytes = file_stats.st_size
-
-    # convert bytes to KB
-    kb = bytes / 1024
-
-    # round to 2 decimal places
-    kb = round(kb, 0)
-
-    print(f"File size: {kb} KB")
-
-    # convert bytes to MB
-    mb = bytes / 1024 / 1024
-
-    # round to 2 decimal places
-    mb = round(mb, 3)
-
-    print(f"File size: {mb} MB")
-
-    #
-
-    if kb < 1024:
-        return f"{kb} KB"
-    else:
-        return f"{mb} MB"
-
-
-def open_dir(file_path):
-    # this is how th file path looks like: ['C:\\', 'Windows']
-    print(f"Opening dir: {file_path}")
-
-    for file in load_files(file_path):
-        file_dir = f"{dir_history.get_current_dir()}/{file}"
-
-        file_stats = os.stat(file_dir)
-        print(file_stats)
-        creation_time = datetime.datetime.fromtimestamp(file_stats.st_ctime)
-        modification_time = datetime.datetime.fromtimestamp(file_stats.st_mtime)
-        last_access_time = datetime.datetime.fromtimestamp(file_stats.st_atime)
-        file_size = get_file_size(file_dir)
-        # file_size = f"{round(file_stats.st_size / 1024, 2)} KB"
-
-        permission = oct(file_stats.st_mode)
-
-        if os.path.isfile(file_dir):
-            tabletree.insert("", index=tk.END, values=(file, "File", creation_time, modification_time, file_size), image=file_img)
-        if os.path.isdir(file_dir):
-            tabletree.insert("", index=tk.END, values=(file, "Folder",creation_time, modification_time, ""), image=folder_img)
-
-
-def load_files(file_path):
-    print(f"loading: {file_path}")
-    files = os.listdir(file_path)
-    return files
-
-
-drives_sizes = {}
 
 drives = get_drives_info()
 # make a frame for every drive in this pc
